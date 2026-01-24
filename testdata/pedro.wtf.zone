@@ -1,0 +1,146 @@
+; Zone file for pedro.wtf
+; Mix of correctly configured records and dangling subdomains for testing
+; Generated for DRF (Dangling Records Finder) demonstration
+
+$ORIGIN pedro.wtf.
+$TTL 3600
+
+; =============================================================================
+; SOA and NS Records
+; =============================================================================
+@       IN  SOA     ns1.pedro.wtf. admin.pedro.wtf. (
+                    2024012401  ; serial (YYYYMMDDNN)
+                    7200        ; refresh (2 hours)
+                    1800        ; retry (30 minutes)
+                    1209600     ; expire (2 weeks)
+                    3600        ; minimum (1 hour)
+)
+
+@       IN  NS      ns1.pedro.wtf.
+@       IN  NS      ns2.pedro.wtf.
+
+; =============================================================================
+; Infrastructure Records (Correctly Configured)
+; =============================================================================
+ns1             IN  A       192.0.2.1
+ns2             IN  A       192.0.2.2
+
+; Main site - points to real infrastructure
+@               IN  A       192.0.2.10
+www             IN  A       192.0.2.10
+
+; Mail infrastructure
+mail            IN  A       192.0.2.20
+@               IN  MX      10 mail.pedro.wtf.
+@               IN  MX      20 mail2.pedro.wtf.
+mail2           IN  A       192.0.2.21
+
+; SPF and DMARC
+@               IN  TXT     "v=spf1 mx include:_spf.google.com ~all"
+_dmarc          IN  TXT     "v=DMARC1; p=quarantine; rua=mailto:dmarc@pedro.wtf"
+
+; =============================================================================
+; Correctly Configured Cloud Services (Should NOT trigger alerts)
+; These point to well-known services that exist
+; =============================================================================
+
+; Google services (these resolve correctly)
+calendar        IN  CNAME   ghs.googlehosted.com.
+drive           IN  CNAME   ghs.googlehosted.com.
+
+; Mailchimp tracking (exists)
+email-track     IN  CNAME   dkim.mcsv.net.
+
+; =============================================================================
+; DANGLING SUBDOMAINS - AWS (Should trigger CRITICAL findings)
+; =============================================================================
+
+; Abandoned S3 buckets - company pivoted away from these features
+old-assets      IN  CNAME   pedro-wtf-old-assets-2019.s3.amazonaws.com.
+legacy-uploads  IN  CNAME   pedro-wtf-legacy-uploads.s3-us-west-2.amazonaws.com.
+backup-images   IN  CNAME   pedro-backup-images-prod.s3.us-east-1.amazonaws.com.
+
+; S3 static website that was decommissioned
+old-landing     IN  CNAME   pedro-wtf-landing-v1.s3-website-us-east-1.amazonaws.com.
+
+; CloudFront distribution - CDN was cancelled
+cdn-old         IN  CNAME   d1x2y3z4abc123.cloudfront.net.
+static-legacy   IN  CNAME   d9a8b7c6d5e4f3.cloudfront.net.
+
+; Elastic Beanstalk - staging environment was terminated
+staging-api     IN  CNAME   pedro-wtf-staging-api.us-east-1.elasticbeanstalk.com.
+dev-backend     IN  CNAME   pedro-dev-env.elasticbeanstalk.com.
+
+; =============================================================================
+; DANGLING SUBDOMAINS - Azure (Should trigger CRITICAL findings)
+; =============================================================================
+
+; Azure Blob Storage - storage account deleted after migration
+files-backup    IN  CNAME   pedrowtfbackup2022.blob.core.windows.net.
+user-uploads    IN  CNAME   pedrowtfuploads.blob.core.windows.net.
+
+; Azure CDN - endpoint removed
+cdn-azure       IN  CNAME   pedro-wtf-cdn.azureedge.net.
+media-cdn       IN  CNAME   pedro-media-edge.azurefd.net.
+
+; Azure Traffic Manager - profile deleted
+api-geo         IN  CNAME   pedro-wtf-api.trafficmanager.net.
+
+; =============================================================================
+; DANGLING SUBDOMAINS - GitHub Pages (Should trigger CRITICAL findings)
+; =============================================================================
+
+; Old documentation site - repo was made private/deleted
+docs-old        IN  CNAME   pedro-wtf.github.io.
+blog-archive    IN  CNAME   pedro-wtf-blog.github.io.
+
+; =============================================================================
+; DANGLING SUBDOMAINS - Heroku (Should trigger CRITICAL findings)
+; =============================================================================
+
+; Heroku apps that were deleted after moving to Kubernetes
+app-legacy      IN  CNAME   pedro-wtf-production.herokuapp.com.
+api-v1          IN  CNAME   pedro-wtf-api-v1.herokuapp.com.
+staging         IN  CNAME   pedro-wtf-staging.herokuapp.com.
+demo            IN  CNAME   pedro-wtf-demo-app.herokuapp.com.
+
+; =============================================================================
+; Internal/Development Records (Correctly Configured)
+; =============================================================================
+
+; Internal services with A records (no takeover risk)
+internal        IN  A       10.0.1.10
+vpn             IN  A       192.0.2.50
+monitoring      IN  A       192.0.2.51
+grafana         IN  A       192.0.2.52
+
+; Development servers
+dev             IN  A       192.0.2.100
+test            IN  A       192.0.2.101
+
+; =============================================================================
+; API and Application Records (Correctly Configured)
+; =============================================================================
+
+; Current production API (direct IP, no CNAME risk)
+api             IN  A       192.0.2.30
+api             IN  AAAA    2001:db8::30
+
+; Webhooks endpoint
+webhooks        IN  A       192.0.2.31
+
+; Status page (external service that exists)
+status          IN  CNAME   stats.uptimerobot.com.
+
+; =============================================================================
+; SRV Records (for completeness)
+; =============================================================================
+_sip._tcp       IN  SRV     10 60 5060 sip.pedro.wtf.
+sip             IN  A       192.0.2.60
+
+; =============================================================================
+; CAA Records (Certificate Authority Authorization)
+; =============================================================================
+@               IN  CAA     0 issue "letsencrypt.org"
+@               IN  CAA     0 issuewild "letsencrypt.org"
+@               IN  CAA     0 iodef "mailto:security@pedro.wtf"

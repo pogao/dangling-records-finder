@@ -1,0 +1,80 @@
+; Example zone file for testing dangling DNS record detection
+; This file contains sample records pointing to various cloud providers
+
+$ORIGIN example.com.
+$TTL 300
+
+; SOA record
+@       IN  SOA     ns1.example.com. admin.example.com. (
+                    2024010101  ; serial
+                    3600        ; refresh
+                    900         ; retry
+                    604800      ; expire
+                    300         ; minimum
+)
+
+; NS records
+@       IN  NS      ns1.example.com.
+@       IN  NS      ns2.example.com.
+
+; A records for infrastructure
+ns1     IN  A       192.0.2.1
+ns2     IN  A       192.0.2.2
+@       IN  A       192.0.2.10
+www     IN  A       192.0.2.11
+mail    IN  A       192.0.2.12
+
+; MX records
+@       IN  MX      10 mail.example.com.
+@       IN  MX      20 mail2.example.com.
+
+; ============================================
+; CNAME records - potential takeover candidates
+; ============================================
+
+; AWS S3 Buckets
+; These might be dangling if the bucket was deleted
+static          IN  CNAME   example-static-assets.s3.amazonaws.com.
+old-images      IN  CNAME   old-bucket-12345.s3-us-west-2.amazonaws.com.
+website         IN  CNAME   example-website.s3-website-us-east-1.amazonaws.com.
+
+; AWS CloudFront
+; Distribution might have been deleted
+cdn             IN  CNAME   d1234567890abc.cloudfront.net.
+assets          IN  CNAME   d0987654321xyz.cloudfront.net.
+
+; AWS Elastic Beanstalk
+; Environment might have been terminated
+api-staging     IN  CNAME   my-staging-env.us-east-1.elasticbeanstalk.com.
+legacy-app      IN  CNAME   legacy-app-env.elasticbeanstalk.com.
+
+; Azure Blob Storage
+; Storage account might have been deleted
+files           IN  CNAME   examplefiles.blob.core.windows.net.
+backups         IN  CNAME   examplebackup123.blob.core.windows.net.
+
+; Azure CDN
+; CDN endpoint might have been removed
+cdn-azure       IN  CNAME   example-cdn.azureedge.net.
+media           IN  CNAME   example-media.azurefd.net.
+
+; GitHub Pages
+; Repository might have been deleted or Pages disabled
+docs            IN  CNAME   exampleorg.github.io.
+blog            IN  CNAME   example-project.github.io.
+
+; Heroku Apps
+; App might have been deleted
+app             IN  CNAME   example-production.herokuapp.com.
+staging         IN  CNAME   example-staging.herokuapp.com.
+demo            IN  CNAME   example-demo-app.herokuapp.com.
+
+; ============================================
+; Legitimate CNAME records (should not trigger)
+; ============================================
+tracking        IN  CNAME   www.googletagmanager.com.
+email-click     IN  CNAME   links.mailchimp.com.
+
+; TXT records
+@       IN  TXT     "v=spf1 include:_spf.google.com ~all"
+_dmarc  IN  TXT     "v=DMARC1; p=reject; rua=mailto:dmarc@example.com"
