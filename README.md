@@ -2,6 +2,8 @@
 
 <p align="center">
   <strong>A security tool for detecting subdomain takeover vulnerabilities in DNS configurations</strong>
+  <br />
+  <p>Please note this is just me playing with AI agents to better understand how to use them better. Not all code was written by me.</p>
 </p>
 
 <p align="center">
